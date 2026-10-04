@@ -163,12 +163,6 @@
             font-weight: 600;
         }
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
         input[type="number"], select {
             width: 100%;
             background: var(--bg-card-alt);
@@ -305,7 +299,7 @@
         <!-- Technical Structure & Indicators -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">3. Technical Indicators & Price Structure</div>
+                <div class="card-title">3. Chart Technical Structure & Indicators</div>
                 <button class="btn-sync" onclick="autoSetLevels()">🎯 Auto Levels</button>
             </div>
             <div class="form-group">
@@ -331,26 +325,30 @@
                 <label for="yellowC">Yellow Line / Upper Resistance (C)</label>
                 <input type="number" id="yellowC" value="66200" step="any">
             </div>
+            
+            <!-- NEW TECHNICAL INDICATORS ADDED BELOW -->
             <div class="form-group">
-                <label for="rsiVal">RSI (14) Value</label>
-                <input type="number" id="rsiVal" value="52" min="0" max="100">
+                <label for="rsiValue">RSI Level (14-period)</label>
+                <input type="number" id="rsiValue" value="52" min="0" max="100">
             </div>
             <div class="form-group">
-                <label for="macdStatus">MACD Signal Status</label>
-                <select id="macdStatus">
-                    <option value="Bullish Cross" selected>Bullish Crossover / Above Zero</option>
-                    <option value="Neutral">Neutral / Flat</option>
-                    <option value="Bearish Cross">Bearish Crossover / Below Zero</option>
+                <label for="macdSignal">MACD Trend & Momentum</label>
+                <select id="macdSignal">
+                    <option value="Bullish Cross" selected>Bullish Crossover (Green Momentum)</option>
+                    <option value="Neutral">Neutral / Flat Lines</option>
+                    <option value="Bearish Cross">Bearish Crossover (Red Momentum)</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="maAlignment">Moving Average Alignment (MA)</label>
-                <select id="maAlignment">
-                    <option value="Bullish" selected>Price Above key MAs (Bullish Alignment)</option>
-                    <option value="Consolidating">Price Between MAs (Consolidation)</option>
-                    <option value="Bearish">Price Below key MAs (Bearish Alignment)</option>
+                <label for="maFilter">Moving Average (MA) Trend Filter</label>
+                <select id="maFilter">
+                    <option value="Above MA" selected>Above Key MAs (20/50/200 MA Bullish)</option>
+                    <option value="At MA">Consolidating / Testing MAs</option>
+                    <option value="Below MA">Below Key MAs (Bearish Structure)</option>
                 </select>
             </div>
+            <!-- END TECHNICAL INDICATORS -->
+
             <div class="form-group">
                 <label for="candleSetup">Candle Setup Pattern</label>
                 <select id="candleSetup">
@@ -478,9 +476,11 @@
             const priceA = parseFloat(document.getElementById('priceA').value) || 0;
             const pinkB = parseFloat(document.getElementById('pinkB').value) || 1;
             const yellowC = parseFloat(document.getElementById('yellowC').value) || 1;
-            const rsi = parseFloat(document.getElementById('rsiVal').value) || 50;
-            const macd = document.getElementById('macdStatus').value;
-            const maAlign = document.getElementById('maAlignment').value;
+            
+            // TECHNICAL INPUT VALUES
+            const rsiVal = parseFloat(document.getElementById('rsiValue').value) || 50;
+            const macdSig = document.getElementById('macdSignal').value;
+            const maFilt = document.getElementById('maFilter').value;
             const candleSetup = document.getElementById('candleSetup').value;
 
             const trendRatio = priceA / pinkB;
@@ -516,25 +516,26 @@
             const box2Title = document.getElementById('box2Title');
             const box2Message = document.getElementById('box2Message');
 
-            const isTechnicalBullish = (rsi >= 40 && rsi <= 70) && (macd === "Bullish Cross") && (maAlign === "Bullish");
+            // TECHNICAL CONFIRMATORY LOGIC
+            const isTechnicalBullish = (rsiVal >= 40 && rsiVal <= 68) && (macdSig === "Bullish Cross") && (maFilt === "Above MA");
             const isBuyTrigger = (candleSetup === "Green Reversal (Above Pink Line)") && (trendRatio >= 1.000 && trendRatio <= 1.003) && isTechnicalBullish;
-            const isCeilingTrap = (candleSetup === "Ceiling Chasing (At Yellow Line)") || (ceilingRatio >= 0.998) || (rsi > 70);
+            const isCeilingTrap = (candleSetup === "Ceiling Chasing (At Yellow Line)") || (ceilingRatio >= 0.998) || (rsiVal > 70);
 
             let actionSignal = "";
             if (isBuyTrigger && isGreenMacro) {
                 box2.className = 'result-card state-green';
                 box2Title.innerText = '🟢 TARGET ACTION: EXECUTE BUY ORDER';
-                box2Message.innerText = `All indicators aligned (RSI: ${rsi}, MACD: Bullish, MA Alignment: Bullish). Deploy $${posSize.toFixed(2)}. Set target at $${profitTarget.toFixed(2)}.`;
+                box2Message.innerText = `Full confluence achieved (RSI ${rsiVal}, MACD Bullish, MA Support). Deploy $${posSize.toFixed(2)}. Target profit: $${profitTarget.toFixed(2)}.`;
                 actionSignal = "BUY ORDER";
             } else if (isCeilingTrap) {
                 box2.className = 'result-card state-yellow';
                 box2Title.innerText = '✋ TARGET ACTION: CEILING TRAP / OVERBOUGHT';
-                box2Message.innerText = `Overbought conditions or price hugging resistance (RSI: ${rsi}). Do not enter here—wait for a pullback.`;
+                box2Message.innerText = `Price resistance or RSI Overbought (${rsiVal}). Stand down and await a pullback to support.`;
                 actionSignal = "STAND DOWN";
             } else {
                 box2.className = 'result-card state-red';
                 box2Title.innerText = '❌ TARGET ACTION: NO SETUP / STAY OUT';
-                box2Message.innerText = `Indicators lack full confluence (RSI: ${rsi}, MACD: ${macd}, MA: ${maAlign}). Keep cash on the sidelines.`;
+                box2Message.innerText = `Missing indicator confluence (RSI: ${rsiVal}, MACD: ${macdSig}, MA: ${maFilt}). Keep cash on sidelines.`;
                 actionSignal = "NO SETUP";
             }
 
