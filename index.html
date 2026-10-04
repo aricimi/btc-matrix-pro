@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bitcoin Trading Matrix Pro</title>
+
+    <!-- iOS Web App Metadata -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BTC Matrix Pro">
+    <meta name="theme-color" content="#0a0f1d">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/bitcoin--v1.png">
+
+    <style>
+        :root {
+            --bg-dark: #0a0f1d;
+            --bg-card: #111a2e;
+            --bg-card-alt: #1a2642;
+            --accent-blue: #2563eb;
+            --cyan-glow: #38bdf8;
+            --green-glow: #22c55e;
+            --green-bg: rgba(34, 197, 94, 0.12);
+            --green-border: #16a34a;
+            --yellow-glow: #eab308;
+            --yellow-bg: rgba(234, 179, 8, 0.12);
+            --yellow-border: #ca8a04;
+            --red-glow: #ef4444;
+            --red-bg: rgba(239, 68, 68, 0.12);
+            --red-border: #dc2626;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(56, 189, 248, 0.2);
+            --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: var(--font-sans);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-top: 8px;
+        }
+
+        .app-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--cyan-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .live-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .live-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .live-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .live-val {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--cyan-glow);
+        }
+
+        .btn-sync {
+            background: var(--bg-card-alt);
+            border: 1px solid var(--border-color);
+            color: var(--cyan-glow);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            background: var(--bg-card-alt);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .unit-tag {
+            position: absolute;
+            right: 14px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            font-weight: 600;
+        }
+
+        .btn-calc {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+            background: rgba(10, 15, 29, 0.8);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .metric-box { text-align: center; }
+        .metric-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+        .metric-value { font-size: 0.88rem; font-weight: 700; color: var(--cyan-glow); }
+
+        .result-card {
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border-width: 1.5px;
+            border-style: solid;
+        }
+
+        .state-green { background: var(--green-bg); border-color: var(--green-border); color: #ffffff; }
+        .state-green .res-title { color: var(--green-glow); }
+        .state-yellow { background: var(--yellow-bg); border-color: var(--yellow-border); color: #ffffff; }
+        .state-yellow .res-title { color: var(--yellow-glow); }
+        .state-red { background: var(--red-bg); border-color: var(--red-border); color: #ffffff; }
+        .state-red .res-title { color: var(--red-glow); }
+
+        .res-header { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; }
+        .res-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+        .res-message { font-size: 0.88rem; line-height: 1.45; color: #e2e8f0; }
+
+        .log-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .log-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+        .log-list { list-style: none; max-height: 120px; overflow-y: auto; font-size: 0.75rem; }
+        .log-item { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+
+        footer { text-align: center; font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="app-title">⚡ BITCOIN MATRIX PRO</div>
+            <div class="subtitle">Live API Stream & Risk Management Engine</div>
+        </header>
+
+        <!-- Live Feeds Banner -->
+        <div class="live-bar">
+            <div class="live-item">
+                <span class="live-label">Live BTC/USDT</span>
+                <span class="live-val" id="liveBtc">$0.00</span>
+            </div>
+            <div class="live-item">
+                <span class="live-label">Fear & Greed</span>
+                <span class="live-val" id="liveFg">--</span>
+            </div>
+            <button class="btn-sync" onclick="fetchLiveAPIs()">🔄 Sync</button>
+        </div>
+
+        <!-- Bankroll & Risk Management -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">1. Portfolio Risk Parameters</div>
+            </div>
+            <div class="form-group">
+                <label for="totalCapital">Total Trading Bankroll ($)</label>
+                <input type="number" id="totalCapital" value="1000" onchange="saveParams()">
+            </div>
+            <div class="form-group">
+                <label for="riskPct">Max Risk Allocation Per Trade (%)</label>
+                <input type="number" id="riskPct" value="25" min="1" max="100" onchange="saveParams()">
+            </div>
+        </div>
+
+        <!-- Macro Inputs -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">2. Macro Metrics</div>
+            </div>
+            <div class="form-group">
+                <label for="fedwatch">CME FedWatch: Cut/Pause Probability (%)</label>
+                <input type="number" id="fedwatch" value="78" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label for="etfFlow">Institutional ETF Net Flow</label>
+                <select id="etfFlow">
+                    <option value="Solid Green" selected>Solid Green</option>
+                    <option value="Mixed/Flat/Red">Mixed/Flat/Red</option>
+                    <option value="Deep Red">Deep Red</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Technical Structure -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">3. Chart Technical Structure</div>
+            </div>
+            <div class="form-group">
+                <label for="priceA">Current Price (A)</label>
+                <input type="number" id="priceA" value="65000" step="any">
+            </div>
+            <div class="form-group">
+                <label for="pinkB">Pink Line / Support MA (B)</label>
+                <input type="number" id="pinkB" value="64850" step="any">
+            </div>
+            <div class="form-group">
+                <label for="yellowC">Yellow Line / Upper Resistance (C)</label>
+                <input type="number" id="yellowC" value="66200" step="any">
+            </div>
+            <div class="form-group">
+                <label for="candleSetup">Candle Setup Pattern</label>
+                <select id="candleSetup">
+                    <option value="Green Reversal (Above Pink Line)" selected>Green Reversal (Above Pink Line)</option>
+                    <option value="Red Breakdown (Below Pink Line)">Red Breakdown (Below Pink Line)</option>
+                    <option value="Ceiling Chasing (At Yellow Line)">Ceiling Chasing (At Yellow Line)</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="runCalculationEngine()">⚡ RUN STRATEGY EVALUATION</button>
+
+        <!-- Results Output -->
+        <div id="resultsWrapper" style="display:none;">
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-label">Position Size</div>
+                    <div class="metric-value" id="valPositionSize">$0.00</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Trend Ratio</div>
+                    <div class="metric-value" id="valTrendRatio">1.000</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">+2% Target</div>
+                    <div class="metric-value" id="valTargetPrice">$0.00</div>
+                </div>
+            </div>
+
+            <div id="box1" class="result-card state-green">
+                <div class="res-header">Macro Strategy Mode</div>
+                <div class="res-title" id="box1Title">--</div>
+                <div class="res-message" id="box1Message">--</div>
+            </div>
+
+            <div id="box2" class="result-card state-green">
+                <div class="res-header">Immediate Action Signal</div>
+                <div class="res-title" id="box2Title">--</div>
+                <div class="res-message" id="box2Message">--</div>
+            </div>
+
+            <!-- Execution Audit Log -->
+            <div class="log-section">
+                <div class="log-title">Recent Audit Log</div>
+                <ul class="log-list" id="logList"></ul>
+            </div>
+        </div>
+
+        <footer>
+            Standalone HTML5 App • Real-time Data Sync
+        </footer>
+    </div>
+
+    <script>
+        // Fetch Live APIs: Binance Price & Alternative.me Fear & Greed
+        async function fetchLiveAPIs() {
+            try {
+                const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+                const btcData = await btcRes.json();
+                const currentPrice = parseFloat(btcData.price);
+                document.getElementById('liveBtc').innerText = '$' + currentPrice.toLocaleString('en-US', {maximumFractionDigits: 2});
+                document.getElementById('priceA').value = currentPrice.toFixed(2);
+
+                const fgRes = await fetch('https://api.alternative.me/fng/');
+                const fgData = await fgRes.json();
+                const fgScore = fgData.data[0].value;
+                document.getElementById('liveFg').innerText = fgScore + '/100';
+            } catch (err) {
+                console.log('API Fetch Error:', err);
+            }
+        }
+
+        function saveParams() {
+            localStorage.setItem('btc_cap', document.getElementById('totalCapital').value);
+            localStorage.setItem('btc_risk', document.getElementById('riskPct').value);
+        }
+
+        function loadParams() {
+            if (localStorage.getItem('btc_cap')) {
+                document.getElementById('totalCapital').value = localStorage.getItem('btc_cap');
+            }
+            if (localStorage.getItem('btc_risk')) {
+                document.getElementById('riskPct').value = localStorage.getItem('btc_risk');
+            }
+        }
+
+        function logExecution(signal) {
+            const list = document.getElementById('logList');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const item = document.createElement('li');
+            item.className = 'log-item';
+            item.innerHTML = `<span>${time} - ${signal}</span><span>$${document.getElementById('priceA').value}</span>`;
+            list.prepend(item);
+        }
+
+        function runCalculationEngine() {
+            const capital = parseFloat(document.getElementById('totalCapital').value) || 1000;
+            const riskPct = parseFloat(document.getElementById('riskPct').value) || 25;
+            const posSize = capital * (riskPct / 100);
+
+            const fedWatch = parseFloat(document.getElementById('fedwatch').value) || 0;
+            const etfFlow = document.getElementById('etfFlow').value;
+
+            const priceA = parseFloat(document.getElementById('priceA').value) || 0;
+            const pinkB = parseFloat(document.getElementById('pinkB').value) || 1;
+            const yellowC = parseFloat(document.getElementById('yellowC').value) || 1;
+            const candleSetup = document.getElementById('candleSetup').value;
+
+            const trendRatio = priceA / pinkB;
+            const ceilingRatio = priceA / yellowC;
+            const profitTarget = priceA * 1.02;
+
+            document.getElementById('valPositionSize').innerText = '$' + posSize.toFixed(2);
+            document.getElementById('valTrendRatio').innerText = trendRatio.toFixed(4);
+            document.getElementById('valTargetPrice').innerText = '$' + profitTarget.toLocaleString('en-US', {maximumFractionDigits: 2});
+
+            const box1 = document.getElementById('box1');
+            const box1Title = document.getElementById('box1Title');
+            const box1Message = document.getElementById('box1Message');
+
+            const isGreenMacro = (fedWatch >= 75) && (etfFlow === "Solid Green");
+            const isRedMacro = (fedWatch < 60) || (etfFlow === "Deep Red");
+
+            if (isGreenMacro) {
+                box1.className = 'result-card state-green';
+                box1Title.innerText = '🟢 MACRO TIDE: BULLISH ACCUMULATION';
+                box1Message.innerText = `Institutional flow is green. Allocation Mode: Safe to deploy your $${posSize.toFixed(2)} position size on dips.`;
+            } else if (isRedMacro) {
+                box1.className = 'result-card state-red';
+                box1Title.innerText = '🔴 MACRO TIDE: DISTRIBUTION / HIGH RISK';
+                box1Message.innerText = `Macro pressure detected. Strategy Mode: Stand down. Preserve total $${capital.toFixed(2)} bankroll in cash.`;
+            } else {
+                box1.className = 'result-card state-yellow';
+                box1Title.innerText = '🟡 MACRO TIDE: RANGE CONSOLIDATION';
+                box1Message.innerText = `Market is sideways. Lower execution frequency and wait for major support levels.`;
+            }
+
+            const box2 = document.getElementById('box2');
+            const box2Title = document.getElementById('box2Title');
+            const box2Message = document.getElementById('box2Message');
+
+            const isBuyTrigger = (candleSetup === "Green Reversal (Above Pink Line)") && (trendRatio >= 1.000 && trendRatio <= 1.003);
+            const isCeilingTrap = (candleSetup === "Ceiling Chasing (At Yellow Line)") || (ceilingRatio >= 0.998);
+
+            let actionSignal = "";
+            if (isBuyTrigger && isGreenMacro) {
+                box2.className = 'result-card state-green';
+                box2Title.innerText = '🟢 TARGET ACTION: EXECUTE BUY ORDER';
+                box2Message.innerText = `Buy signal confirmed. Deploy $${posSize.toFixed(2)}. Set take-profit target at $${profitTarget.toFixed(2)}.`;
+                actionSignal = "BUY ORDER";
+            } else if (isCeilingTrap) {
+                box2.className = 'result-card state-yellow';
+                box2Title.innerText = '✋ TARGET ACTION: CEILING TRAP DETECTED';
+                box2Message.innerText = 'Price is hugging resistance. Do not enter here—wait for a pull-back to support.';
+                actionSignal = "STAND DOWN";
+            } else {
+                box2.className = 'result-card state-red';
+                box2Title.innerText = '❌ TARGET ACTION: NO SETUP / STAY OUT';
+                box2Message.innerText = 'Structure is weak or price is below the support baseline. Keep cash sitting on the sidelines.';
+                actionSignal = "NO SETUP";
+            }
+
+            document.getElementById('resultsWrapper').style.display = 'block';
+            logExecution(actionSignal);
+        }
+
+        window.onload = function() {
+            loadParams();
+            fetchLiveAPIs();
+            runCalculationEngine();
+        };
+    </script>
+</body>
+</html>
