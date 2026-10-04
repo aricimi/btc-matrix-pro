@@ -183,15 +183,6 @@
             appearance: none;
         }
 
-        .unit-tag {
-            position: absolute;
-            right: 14px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            pointer-events: none;
-            font-weight: 600;
-        }
-
         .btn-calc {
             width: 100%;
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
@@ -311,10 +302,10 @@
             </div>
         </div>
 
-        <!-- Technical Structure (REVISED SECTION 3) -->
+        <!-- Technical Structure & Indicators -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">3. Chart Technical Structure</div>
+                <div class="card-title">3. Technical Indicators & Price Structure</div>
                 <button class="btn-sync" onclick="autoSetLevels()">🎯 Auto Levels</button>
             </div>
             <div class="form-group">
@@ -339,6 +330,26 @@
             <div class="form-group">
                 <label for="yellowC">Yellow Line / Upper Resistance (C)</label>
                 <input type="number" id="yellowC" value="66200" step="any">
+            </div>
+            <div class="form-group">
+                <label for="rsiVal">RSI (14) Value</label>
+                <input type="number" id="rsiVal" value="52" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label for="macdStatus">MACD Signal Status</label>
+                <select id="macdStatus">
+                    <option value="Bullish Cross" selected>Bullish Crossover / Above Zero</option>
+                    <option value="Neutral">Neutral / Flat</option>
+                    <option value="Bearish Cross">Bearish Crossover / Below Zero</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="maAlignment">Moving Average Alignment (MA)</label>
+                <select id="maAlignment">
+                    <option value="Bullish" selected>Price Above key MAs (Bullish Alignment)</option>
+                    <option value="Consolidating">Price Between MAs (Consolidation)</option>
+                    <option value="Bearish">Price Below key MAs (Bearish Alignment)</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="candleSetup">Candle Setup Pattern</label>
@@ -394,16 +405,14 @@
     </div>
 
     <script>
-        // Auto-calculate typical Support/Resistance buffers based on Execution Timeframe
         function autoSetLevels() {
             const priceA = parseFloat(document.getElementById('priceA').value) || 0;
             const tf = document.getElementById('timeframe').value;
 
             if (priceA <= 0) return;
 
-            // Varied support/resistance offset based on timeframe volatility
-            let supportPct = 0.002;   // 0.2%
-            let resistancePct = 0.01;  // 1.0%
+            let supportPct = 0.002;
+            let resistancePct = 0.01;
 
             if (tf === '1m') { supportPct = 0.001; resistancePct = 0.005; }
             else if (tf === '5m') { supportPct = 0.002; resistancePct = 0.01; }
@@ -416,7 +425,6 @@
             document.getElementById('yellowC').value = (priceA * (1 + resistancePct)).toFixed(2);
         }
 
-        // Fetch Live APIs: Binance Price & Alternative.me Fear & Greed
         async function fetchLiveAPIs() {
             try {
                 const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
@@ -470,6 +478,9 @@
             const priceA = parseFloat(document.getElementById('priceA').value) || 0;
             const pinkB = parseFloat(document.getElementById('pinkB').value) || 1;
             const yellowC = parseFloat(document.getElementById('yellowC').value) || 1;
+            const rsi = parseFloat(document.getElementById('rsiVal').value) || 50;
+            const macd = document.getElementById('macdStatus').value;
+            const maAlign = document.getElementById('maAlignment').value;
             const candleSetup = document.getElementById('candleSetup').value;
 
             const trendRatio = priceA / pinkB;
@@ -505,24 +516,25 @@
             const box2Title = document.getElementById('box2Title');
             const box2Message = document.getElementById('box2Message');
 
-            const isBuyTrigger = (candleSetup === "Green Reversal (Above Pink Line)") && (trendRatio >= 1.000 && trendRatio <= 1.003);
-            const isCeilingTrap = (candleSetup === "Ceiling Chasing (At Yellow Line)") || (ceilingRatio >= 0.998);
+            const isTechnicalBullish = (rsi >= 40 && rsi <= 70) && (macd === "Bullish Cross") && (maAlign === "Bullish");
+            const isBuyTrigger = (candleSetup === "Green Reversal (Above Pink Line)") && (trendRatio >= 1.000 && trendRatio <= 1.003) && isTechnicalBullish;
+            const isCeilingTrap = (candleSetup === "Ceiling Chasing (At Yellow Line)") || (ceilingRatio >= 0.998) || (rsi > 70);
 
             let actionSignal = "";
             if (isBuyTrigger && isGreenMacro) {
                 box2.className = 'result-card state-green';
                 box2Title.innerText = '🟢 TARGET ACTION: EXECUTE BUY ORDER';
-                box2Message.innerText = `Buy signal confirmed. Deploy $${posSize.toFixed(2)}. Set take-profit target at $${profitTarget.toFixed(2)}.`;
+                box2Message.innerText = `All indicators aligned (RSI: ${rsi}, MACD: Bullish, MA Alignment: Bullish). Deploy $${posSize.toFixed(2)}. Set target at $${profitTarget.toFixed(2)}.`;
                 actionSignal = "BUY ORDER";
             } else if (isCeilingTrap) {
                 box2.className = 'result-card state-yellow';
-                box2Title.innerText = '✋ TARGET ACTION: CEILING TRAP DETECTED';
-                box2Message.innerText = 'Price is hugging resistance. Do not enter here—wait for a pull-back to support.';
+                box2Title.innerText = '✋ TARGET ACTION: CEILING TRAP / OVERBOUGHT';
+                box2Message.innerText = `Overbought conditions or price hugging resistance (RSI: ${rsi}). Do not enter here—wait for a pullback.`;
                 actionSignal = "STAND DOWN";
             } else {
                 box2.className = 'result-card state-red';
                 box2Title.innerText = '❌ TARGET ACTION: NO SETUP / STAY OUT';
-                box2Message.innerText = 'Structure is weak or price is below the support baseline. Keep cash sitting on the sidelines.';
+                box2Message.innerText = `Indicators lack full confluence (RSI: ${rsi}, MACD: ${macd}, MA: ${maAlign}). Keep cash on the sidelines.`;
                 actionSignal = "NO SETUP";
             }
 
